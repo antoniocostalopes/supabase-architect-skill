@@ -1,0 +1,39 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^https://hooks.slack.com"
+    },
+    {
+      "pattern": "^https://api.salesforce.com"
+    },
+    {
+      "pattern": "^https://search.acme.com"
+    },
+    {
+      "pattern": "^https://<project>"
+    },
+    {
+      "pattern": "^https://acme.com"
+    },
+    {
+      "pattern": "^https://staging.acme.com"
+    },
+    {
+      "pattern": "^https://status.acme.com"
+    },
+    {
+      "pattern": "^https://api.acme.com"
+    },
+    {
+      "pattern": "^https://grafana.internal"
+    },
+    {
+      "pattern": "<[^>]+>"
+    }
+  ],
+  "replacementPatterns": [],
+  "retryOn429": true,
+  "retryCount": 2,
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 206]
+}

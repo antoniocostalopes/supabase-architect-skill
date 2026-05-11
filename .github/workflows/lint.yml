@@ -1,0 +1,80 @@
+name: Lint
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'commands/**'
+      - 'references/**'
+      - 'templates/**'
+      - 'examples/**'
+      - 'SKILL.md'
+      - '.github/workflows/lint.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.md'
+
+jobs:
+  markdown-lint:
+    name: Markdown lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4  # v4.1.7 — SHA: 692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v16  # v16.0.0
+        with:
+          globs: |
+            **/*.md
+            !node_modules/**
+            !tests/results/**
+
+  frontmatter-check:
+    name: Check command frontmatters
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify all commands have description + argument-hint
+        run: |
+          failed=0
+          for f in commands/supabase-*.md; do
+            if ! grep -q "^description:" "$f"; then
+              echo "::error file=$f::Missing 'description:' in frontmatter"
+              failed=1
+            fi
+          done
+          exit $failed
+
+  skill-description-check:
+    name: Check SKILL.md frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify SKILL.md has name + description
+        run: |
+          if ! head -5 SKILL.md | grep -q "^name:"; then
+            echo "::error file=SKILL.md::Missing 'name:' in frontmatter"
+            exit 1
+          fi
+          if ! head -5 SKILL.md | grep -q "^description:"; then
+            echo "::error file=SKILL.md::Missing 'description:' in frontmatter"
+            exit 1
+          fi
+
+  internal-links:
+    name: Check internal markdown links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check internal links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1  # pin to SHA when project matures
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'no'
+          config-file: '.github/mlc-config.json'
+          folder-path: '.'
+          file-extension: '.md'

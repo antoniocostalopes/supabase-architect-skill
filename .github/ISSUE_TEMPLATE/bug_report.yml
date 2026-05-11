@@ -1,0 +1,88 @@
+name: Bug Report
+description: Report incorrect SQL, broken links, or wrong recommendations from the skill
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in the fields below.
+
+        **Note:** For security vulnerabilities, use the [private security advisory](../../security/advisories/new) instead.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: Which area of the skill is affected?
+      options:
+        - RLS / Policies
+        - Auth / JWT / MFA / SSO
+        - Storage
+        - Migrations
+        - Performance / Indexes
+        - Realtime
+        - Edge Functions
+        - RAG / pgvector
+        - CI/CD / Testing
+        - Branching / Environments
+        - Cost estimation
+        - Encryption / Vault
+        - Templates / Output format
+        - Eval runner (runner.ts)
+        - Install scripts
+        - Documentation / GLOSSARY
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: skill-version
+    attributes:
+      label: Skill version
+      description: Check the version in README.md or CHANGELOG.md
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What went wrong?
+      description: Describe the incorrect behaviour, wrong SQL, or misleading recommendation
+      placeholder: |
+        The skill generated `USING (auth.uid() IS NOT NULL)` for a multi-tenant table,
+        which does not filter by organization_id...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened?
+      description: Expected correct SQL, correct recommendation, or expected output
+      placeholder: |
+        Should have generated `USING (public.is_member(organization_id))` and warned
+        about missing org filter...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How did you trigger this? What context/prompt did you use?
+      placeholder: |
+        1. Installed skill v1.0.0
+        2. Ran `/supabase-rls` on a project with `organizations` + `memberships`
+        3. Provided SQL schema: [paste here]
+        4. Skill generated: [paste output excerpt]
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other relevant information (Supabase version, Claude model used, etc.)
+    validations:
+      required: false

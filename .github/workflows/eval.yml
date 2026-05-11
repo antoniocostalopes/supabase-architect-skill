@@ -1,0 +1,68 @@
+name: Eval Suite
+
+on:
+  # Manual trigger — anyone with write access can trigger
+  workflow_dispatch:
+    inputs:
+      prompts:
+        description: 'Prompt IDs to run (e.g. P01,P04,P11). Leave blank for smoke test (P01,P04,P06,P11).'
+        required: false
+        default: ''
+      model:
+        description: 'Anthropic model override'
+        required: false
+        default: 'claude-sonnet-4-6'
+      baseline:
+        description: 'Also run baseline (without skill) for comparison'
+        type: boolean
+        required: false
+        default: false
+
+  # Auto-trigger when PR has label `run-eval`
+  pull_request:
+    types: [labeled]
+
+jobs:
+  eval:
+    name: Eval Suite
+    runs-on: ubuntu-latest
+    # Only run when explicitly triggered or when PR has the label
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'run-eval')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tests/eval/package.json
+
+      - name: Install dependencies
+        working-directory: tests/eval
+        run: npm ci
+
+      - name: Run eval suite
+        working-directory: tests/eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Passar inputs via env — previne script injection (CWE-77)
+          PROMPTS: ${{ github.event.inputs.prompts }}
+          MODEL: ${{ github.event.inputs.model || 'claude-sonnet-4-6' }}
+        run: |
+          if [ -z "${PROMPTS}" ]; then
+            npx tsx runner.ts --only P01,P04,P06,P11 --model "${MODEL}" --no-write
+          else
+            npx tsx runner.ts --only "${PROMPTS}" --model "${MODEL}" --no-write
+          fi
+
+      - name: Run baseline (if requested)
+        if: github.event.inputs.baseline == 'true'
+        working-directory: tests/eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL: ${{ github.event.inputs.model || 'claude-sonnet-4-6' }}
+        run: |
+          npx tsx runner.ts --only P01,P04,P06,P11 --model "${MODEL}" --baseline --no-write
