@@ -1,0 +1,6 @@
+node_modules/
+.env
+.env.local
+*.log
+# Descomenta se não quiseres commitar o lockfile:
+# package-lock.json
